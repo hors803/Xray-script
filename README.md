@@ -44,6 +44,46 @@
   * 随机生成(格式: /8ugSUeNJ.9OEnTErb.dVZMUAFu)
   * 自定义输入(格式: /8ugSUeNJ, 加不加 `/` 都可以)
 
+## XHTTP 反检测画像
+
+本仓库在 XHTTP 相关配置中内置了反检测画像。该能力不需要单独开关，只要生成以下配置之一就会自动注入到最终的 `/usr/local/etc/xray/config.json`:
+
+* XHTTP (VLESS-XHTTP-REALITY)
+* trojan (Trojan-XHTTP-REALITY)
+* Fallback 中的 XHTTP inbound
+* SNI 中的 XHTTP inbound
+
+自动启用的内容包括:
+
+* FakeDNS: 隐藏真实 DNS 查询，配合 sniffing 将域名解析行为收进隧道语义。
+* UDP noise: 通过 `finalmask` 为 XHTTP inbound 增加 UDP 噪声画像。
+* 禁 BT: 自动添加 `bittorrent -> block` 路由，避免 P2P 流量破坏节点画像。
+* 指纹伪装: 分享链接默认包含 `fp=chrome`，客户端侧使用 Chrome 指纹。
+* routing camouflage: 自动添加 `198.18.0.0/15 -> direct` FakeDNS 路由，并设置 `domainStrategy = IPIfNonMatch`。
+* browser mimic: 为 XHTTP 注入浏览器风格的 `host`、`:authority`、`user-agent`、`accept`、`accept-encoding`、`accept-language` 和 `xPaddingBytes`。
+
+快速使用:
+
+```sh
+bash ${HOME}/Xray-script.sh --xhttp
+```
+
+或在菜单中选择:
+
+```text
+管理配置 -> 更新配置 -> VLESS+XHTTP+REALITY
+```
+
+生成后可用以下命令确认是否生效:
+
+```sh
+grep -nE 'fakedns|xPaddingBytes|finalmask|bittorrent|routeOnly' /usr/local/etc/xray/config.json
+```
+
+正常情况下应能看到 `fakedns`、`xPaddingBytes`、`finalmask`、`bittorrent` 和 `routeOnly` 等字段。
+
+> 注意: `finalmask`、XHTTP 与 REALITY 的实际兼容性取决于 Xray-core 和客户端版本。建议使用脚本安装较新的 release/latest 版本，并使用支持 XHTTP、REALITY、`fp=chrome` 的客户端。
+
 ## 问题
 
 1. 如果安装成功，但无法使用，请检查服务器是否开启对应端口，可通过 `https://tcp.ping.pe/ip:port` 验证服务器端口是否开放。
