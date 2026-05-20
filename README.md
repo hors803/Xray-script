@@ -56,7 +56,7 @@
 自动启用的内容包括:
 
 * FakeDNS: 隐藏真实 DNS 查询，配合 sniffing 将域名解析行为收进隧道语义。
-* UDP noise: 按 InternetkafeXHTTP 的结构在配置顶层写入 `finalmask`，为 XHTTP 增加 UDP 噪声画像。
+* UDP noise: 按 Xray 官方结构在 XHTTP inbound 的 `streamSettings.finalmask` 写入 `udp` noise 规则。
 * 禁 BT: 自动添加 `bittorrent -> block` 路由，避免 P2P 流量破坏节点画像。
 * 指纹伪装: 分享链接默认包含 `fp=chrome`，客户端侧使用 Chrome 指纹。
 * routing camouflage: 自动添加 `198.18.0.0/15 -> direct` FakeDNS 路由，并设置 `domainStrategy = IPIfNonMatch`。
@@ -83,7 +83,7 @@ grep -nE 'fakedns|xPaddingBytes|finalmask|bittorrent|routeOnly' /usr/local/etc/x
 
 正常情况下应能看到 `fakedns`、`xPaddingBytes`、`finalmask`、`bittorrent` 和 `routeOnly` 等字段。
 
-> 注意: `finalmask`、XHTTP 与 REALITY 的实际兼容性取决于 Xray-core 和客户端版本。服务端会保留顶层 `finalmask`；v2rayN 客户端侧 `Finalmask` 字段默认留空，只保留 `XHTTP Extra` 中的 `xPaddingBytes`。
+> 注意: `finalmask`、XHTTP 与 REALITY 的实际兼容性取决于 Xray-core 和客户端版本。服务端会保留 `streamSettings.finalmask`；v2rayN 客户端侧 `Finalmask` 字段默认留空，只保留 `XHTTP Extra` 中的 `xPaddingBytes`。
 
 ## 问题
 

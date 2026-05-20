@@ -727,17 +727,6 @@ function apply_anti_detection_profile() {
             "uplinkOnly": 5,
             "downlinkOnly": 30
         })
-        | .finalmask = {
-            "udp": [
-                {
-                    "type": "noise",
-                    "settings": {
-                        "size": "64-128",
-                        "count": "3-5"
-                    }
-                }
-            ]
-        }
         | reduce range(0; (.inbounds | length)) as $i (.;
             if .inbounds[$i].streamSettings.network? == "xhttp" then
                 .inbounds[$i].sniffing = {
@@ -761,6 +750,22 @@ function apply_anti_detection_profile() {
                     "accept-language": $accept_language
                 }
                 | .inbounds[$i].streamSettings.xhttpSettings.xPaddingBytes = "100-1000"
+                | .inbounds[$i].streamSettings.finalmask = {
+                    "udp": [
+                        {
+                            "type": "noise",
+                            "settings": {
+                                "noise": [
+                                    {
+                                        "rand": "64-128",
+                                        "randRange": "0-255",
+                                        "delay": "10-20"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
             else
                 .
             end
