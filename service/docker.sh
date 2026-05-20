@@ -144,6 +144,49 @@ function print_error() {
     exit 1
 }
 
+function fetch_url_ipv4() {
+    local output_path="$1"
+    shift
+
+    local url=""
+    for url in "$@"; do
+        print_info "Downloading Docker install script over IPv4: ${url}"
+
+        if command -v curl >/dev/null 2>&1; then
+            curl -4 -fsSL --connect-timeout 20 --retry 3 --retry-delay 2 -o "${output_path}" "${url}" && return 0
+        fi
+
+        if command -v wget >/dev/null 2>&1; then
+            wget -4 --timeout=20 --tries=3 -O "${output_path}" "${url}" && return 0
+        fi
+    done
+
+    return 1
+}
+
+function download_docker_install_script() {
+    fetch_url_ipv4 "${TOOL_DIR}/install-docker.sh" \
+        "https://get.docker.com" \
+        "https://raw.githubusercontent.com/docker/docker-install/master/install.sh" \
+        "https://cdn.jsdelivr.net/gh/docker/docker-install@master/install.sh"
+}
+
+function run_docker_install_script() {
+    local mode="$1"
+    local docker_download_url=""
+    local -a docker_download_urls=(
+        "https://download.docker.com"
+        "https://mirrors.edge.kernel.org/docker"
+    )
+
+    for docker_download_url in "${docker_download_urls[@]}"; do
+        print_info "Using Docker package source: ${docker_download_url}"
+        DOWNLOAD_URL="${docker_download_url}" sh "${TOOL_DIR}/install-docker.sh" ${mode} && return 0
+    done
+
+    return 1
+}
+
 # =============================================================================
 # 函数名称: _os
 # 功能描述: 检测当前操作系统的发行版名称。
@@ -219,7 +262,7 @@ function install_docker() {
     print_info "$(echo "$I18N_DATA" | jq -r '.docker.install.start')"
 
     # 下载 Docker 官方安装脚本到工具目录
-    wget -O "${TOOL_DIR}/install-docker.sh" https://get.docker.com
+    download_docker_install_script || print_error "failed to download Docker install script from all fallback URLs"
 
     # 检查是否为 CentOS 8 系统
     if [[ "$(_os)" == "centos" && "$(_os_ver)" -eq 8 ]]; then
@@ -232,12 +275,12 @@ function install_docker() {
     # 打印运行前检查的信息
     print_info "$(echo "$I18N_DATA" | jq -r '.docker.install.dry_run')"
     # 执行安装脚本的 --dry-run 模式进行检查
-    sh "${TOOL_DIR}/install-docker.sh" --dry-run
+    run_docker_install_script "--dry-run" || print_error "Docker install dry-run failed with all package sources"
 
     # 打印正式运行安装的信息
     print_info "$(echo "$I18N_DATA" | jq -r '.docker.install.running')"
     # 执行安装脚本进行实际安装
-    sh "${TOOL_DIR}/install-docker.sh"
+    run_docker_install_script "" || print_error "Docker install failed with all package sources"
 }
 
 # =============================================================================
