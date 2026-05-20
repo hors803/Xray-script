@@ -56,8 +56,6 @@ declare XRAY_CONFIG         # 存储 Xray 配置文件的全部 JSON 内容
 declare SCRIPT_CONFIG       # 存储脚本配置文件的全部 JSON 内容
 declare XHTTP_EXTRA         # 存储额外的 XHTTP 下行设置 JSON 字符串
 declare XHTTP_EXTRA_ENCODED # 存储经过 URL 编码的 XHTTP_EXTRA 字符串
-declare XHTTP_FINALMASK         # 存储 Finalmask JSON 字符串
-declare XHTTP_FINALMASK_ENCODED # 存储经过 URL 编码的 XHTTP_FINALMASK 字符串
 declare SHARE_LINK          # 存储最终生成的分享链接
 # 声明一系列变量用于存储分享链接的各个组成部分，便于拼接不同类型的链接
 declare SHARE_LINK_COMPONENT_VLESS   # VLESS 协议的基础部分
@@ -68,7 +66,6 @@ declare SHARE_LINK_COMPONENT_REALITY # Reality 安全传输的参数部分
 declare SHARE_LINK_COMPONENT_XHTTP   # XHTTP 网络传输的参数部分
 declare SHARE_LINK_COMPONENT_FLOW    # Flow 控制参数部分
 declare SHARE_LINK_COMPONENT_EXTRA   # 额外参数 (如 downloadSettings) 部分
-declare SHARE_LINK_COMPONENT_FINALMASK # Finalmask 参数部分
 
 # =============================================================================
 # 函数名称: load_i18n
@@ -307,46 +304,15 @@ EOF
 }
 
 function get_xhttp_anti_detection_json() {
-    local server_name="${CLIENT_CONFIG[server_name]}"
-
     if [[ -z "${XHTTP_EXTRA}" ]]; then
         XHTTP_EXTRA="$(
-            jq -n \
-                --arg host "${server_name}" \
-                --arg accept_language "en-US,en;q=0.9" \
-                '{
-                    headers: {
-                        "accept": "*/*",
-                        ":method": "GET",
-                        ":scheme": "https",
-                        ":authority": $host,
-                        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-                        "accept-encoding": "gzip, deflate, br",
-                        "accept-language": $accept_language
-                    },
-                    xPaddingBytes: "100-1000"
-                }'
-        )"
-    fi
-
-    if [[ -z "${XHTTP_FINALMASK}" ]]; then
-        XHTTP_FINALMASK="$(
             jq -n '{
-                udp: [
-                    {
-                        type: "noise",
-                        settings: {
-                            size: "64-128",
-                            count: "3-5"
-                        }
-                    }
-                ]
+                xPaddingBytes: "100-1000"
             }'
         )"
     fi
 
     XHTTP_EXTRA_ENCODED=$(echo "${XHTTP_EXTRA}" | jq -c '.' | urlencode)
-    XHTTP_FINALMASK_ENCODED=$(echo "${XHTTP_FINALMASK}" | jq -c '.' | urlencode)
 }
 
 # =============================================================================
@@ -401,7 +367,6 @@ function get_share_link_component() {
     SHARE_LINK_COMPONENT_FLOW="&flow=${CLIENT_CONFIG[flow]}"
     # 生成额外参数部分 (&extra=...), 使用之前编码好的 XHTTP_EXTRA_ENCODED
     SHARE_LINK_COMPONENT_EXTRA="&extra=${XHTTP_EXTRA_ENCODED}"
-    SHARE_LINK_COMPONENT_FINALMASK="&fm=${XHTTP_FINALMASK_ENCODED}"
 }
 
 # =============================================================================
@@ -441,7 +406,7 @@ function get_xhttp_share_link() {
     # 获取分享链接的各个组件
     get_share_link_component
     # 将 VLESS 基础部分、Reality 安全参数和 XHTTP 路径参数拼接成完整链接
-    SHARE_LINK="${SHARE_LINK_COMPONENT_VLESS}${SHARE_LINK_COMPONENT_REALITY}${SHARE_LINK_COMPONENT_XHTTP}${SHARE_LINK_COMPONENT_EXTRA}${SHARE_LINK_COMPONENT_FINALMASK}"
+    SHARE_LINK="${SHARE_LINK_COMPONENT_VLESS}${SHARE_LINK_COMPONENT_REALITY}${SHARE_LINK_COMPONENT_XHTTP}${SHARE_LINK_COMPONENT_EXTRA}"
 }
 
 # =============================================================================
@@ -455,7 +420,7 @@ function get_trojan_share_link() {
     # 获取分享链接的各个组件
     get_share_link_component
     # 将 Trojan 基础部分、Reality 安全参数和 XHTTP 路径参数拼接成完整链接
-    SHARE_LINK="${SHARE_LINK_COMPONENT_TROJAN}${SHARE_LINK_COMPONENT_REALITY}${SHARE_LINK_COMPONENT_XHTTP}${SHARE_LINK_COMPONENT_EXTRA}${SHARE_LINK_COMPONENT_FINALMASK}"
+    SHARE_LINK="${SHARE_LINK_COMPONENT_TROJAN}${SHARE_LINK_COMPONENT_REALITY}${SHARE_LINK_COMPONENT_XHTTP}${SHARE_LINK_COMPONENT_EXTRA}"
 }
 
 # =============================================================================
