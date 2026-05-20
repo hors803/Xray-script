@@ -61,7 +61,7 @@
 * 指纹伪装: 分享链接默认包含 `fp=chrome`，客户端侧使用 Chrome 指纹。
 * routing camouflage: 自动添加 `198.18.0.0/15 -> direct` FakeDNS 路由，并设置 `domainStrategy = IPIfNonMatch`。
 * browser mimic: 服务端为 XHTTP 注入浏览器风格的 `host`、`:authority`、`user-agent`、`accept`、`accept-encoding`、`accept-language` 和 `xPaddingBytes`。
-* v2rayN 兼容: 分享链接只自动带 `extra={"xPaddingBytes":"100-1000"}`；`Finalmask` 建议在 v2rayN 中留空，避免客户端兼容性导致断连。
+* v2rayN 兼容: 分享链接不自动带 `extra` 或 `fm`；v2rayN 中 `XHTTP Extra` 与 `Finalmask` 建议都留空，避免客户端兼容性导致断连。
 
 快速使用:
 
@@ -83,7 +83,7 @@ grep -nE 'fakedns|xPaddingBytes|finalmask|bittorrent|routeOnly' /usr/local/etc/x
 
 正常情况下应能看到 `fakedns`、`xPaddingBytes`、`finalmask`、`bittorrent` 和 `routeOnly` 等字段。
 
-> 注意: `finalmask`、XHTTP 与 REALITY 的实际兼容性取决于 Xray-core 和客户端版本。服务端会保留 `streamSettings.finalmask`；v2rayN 客户端侧 `Finalmask` 字段默认留空，只保留 `XHTTP Extra` 中的 `xPaddingBytes`。
+> 注意: `finalmask`、XHTTP 与 REALITY 的实际兼容性取决于 Xray-core 和客户端版本。服务端会保留 `streamSettings.finalmask` 与 `xPaddingBytes`；v2rayN 客户端侧 `XHTTP Extra` 和 `Finalmask` 字段默认都留空。
 
 ## 问题
 

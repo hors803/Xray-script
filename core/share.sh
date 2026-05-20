@@ -303,18 +303,6 @@ EOF
     XHTTP_EXTRA_ENCODED=$(echo "${XHTTP_EXTRA}" | jq -r '.' | urlencode)
 }
 
-function get_xhttp_anti_detection_json() {
-    if [[ -z "${XHTTP_EXTRA}" ]]; then
-        XHTTP_EXTRA="$(
-            jq -n '{
-                xPaddingBytes: "100-1000"
-            }'
-        )"
-    fi
-
-    XHTTP_EXTRA_ENCODED=$(echo "${XHTTP_EXTRA}" | jq -c '.' | urlencode)
-}
-
 # =============================================================================
 # 函数名称: show_client_config
 # 功能描述: 在终端打印格式化的客户端配置信息。
@@ -402,11 +390,10 @@ function get_vision_share_link() {
 # 返回值: 无 (直接修改全局变量 SHARE_LINK)
 # =============================================================================
 function get_xhttp_share_link() {
-    get_xhttp_anti_detection_json
     # 获取分享链接的各个组件
     get_share_link_component
     # 将 VLESS 基础部分、Reality 安全参数和 XHTTP 路径参数拼接成完整链接
-    SHARE_LINK="${SHARE_LINK_COMPONENT_VLESS}${SHARE_LINK_COMPONENT_REALITY}${SHARE_LINK_COMPONENT_XHTTP}${SHARE_LINK_COMPONENT_EXTRA}"
+    SHARE_LINK="${SHARE_LINK_COMPONENT_VLESS}${SHARE_LINK_COMPONENT_REALITY}${SHARE_LINK_COMPONENT_XHTTP}"
 }
 
 # =============================================================================
@@ -416,11 +403,10 @@ function get_xhttp_share_link() {
 # 返回值: 无 (直接修改全局变量 SHARE_LINK)
 # =============================================================================
 function get_trojan_share_link() {
-    get_xhttp_anti_detection_json
     # 获取分享链接的各个组件
     get_share_link_component
     # 将 Trojan 基础部分、Reality 安全参数和 XHTTP 路径参数拼接成完整链接
-    SHARE_LINK="${SHARE_LINK_COMPONENT_TROJAN}${SHARE_LINK_COMPONENT_REALITY}${SHARE_LINK_COMPONENT_XHTTP}${SHARE_LINK_COMPONENT_EXTRA}"
+    SHARE_LINK="${SHARE_LINK_COMPONENT_TROJAN}${SHARE_LINK_COMPONENT_REALITY}${SHARE_LINK_COMPONENT_XHTTP}"
 }
 
 # =============================================================================
